@@ -13,6 +13,8 @@ namespace JsonParse
         private char[] m_jsonChars;
         private int m_position;
         
+		private char m_currentChar;
+
         private const char InvalidCharacter = char.MaxValue;
 
         public TextWindow(string JsonString)
@@ -28,7 +30,24 @@ namespace JsonParse
             {
                 return InvalidCharacter;
             }
-            return m_jsonChars[m_position];
+
+			m_currentChar = m_jsonChars[m_position];
+
+			// skip the whitespace
+			while (char.IsWhiteSpace(m_currentChar))
+			{
+				Advance();
+				m_currentChar = m_jsonChars[m_position];
+			}
+
+			// skip new lines
+			while (m_currentChar == '\r' || m_currentChar == '\n')
+			{
+				Advance();
+				m_currentChar = m_jsonChars[m_position];
+			}
+
+            return m_currentChar;
         }
 
 		public char PeekChar(int Count)
@@ -37,7 +56,9 @@ namespace JsonParse
 			{
 				return InvalidCharacter;
 			}
-			return m_jsonChars[m_position + Count];
+
+			m_currentChar = m_jsonChars[m_position + Count];
+			return m_currentChar;
 		}
 
         public char NextChar()

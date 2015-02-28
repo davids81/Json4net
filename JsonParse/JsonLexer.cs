@@ -13,7 +13,26 @@ namespace JsonParse
         EndObject,
         BeginArray,
         EndArray,
-        PairSeparator
+        PairSeparator,
+		Minus,
+		Number,
+		Object,
+		Array,
+		True,
+		False,
+		Null,
+		DoubleQuote,
+		BackSlash,
+		ForewardSlash,
+		Backspace,
+		FormFeed,
+		NewLine,
+		CarriageReturn,
+		HorizontalTab,
+		Hex,
+		String,
+		PairDelim,
+		Comma
     }
 
     public class Token
@@ -28,22 +47,29 @@ namespace JsonParse
             get;set;
         }
 
+		public string Text
+		{
+			get;set;
+		}
+
+		
 
     }
 
     public class JsonLexer
     {
         private TextWindow m_window;
+		private StringBuilder m_builder;
+
 
         public JsonLexer(TextWindow Text)
         {
             m_window = Text;
+			m_builder = new StringBuilder();
         }
 
         public Token Lex()
         {
-            List<char> chars = new List<char>();
-
             char currentChar = m_window.PeekChar();
             switch (currentChar)
             {
@@ -59,6 +85,8 @@ namespace JsonParse
                 case ']':
                     m_window.Advance();
                     return new Token { SyntaxType = TokenType.EndArray };
+				case '-':
+					return new Token { SyntaxType = TokenType.Minus };
                 case '0':
                 case '1':
                 case '2':
@@ -70,58 +98,187 @@ namespace JsonParse
                 case '8':
                 case '9':
                     return ScanNumericLiteral();
+				case '"':
+					return ScanStringLiteral();
 
             }
 
 			throw new NotImplementedException();
         }
 
+		private Token ScanStringLiteral()
+		{
+			Token stringToken = new Token();
+			stringToken.SyntaxType = TokenType.String;
+
+			m_builder.Clear();
+			char c = m_window.PeekChar();
+			
+			if (c != '"')
+			{
+				throw new ParseException();
+			}
+
+			m_builder.Append(c);
+			m_window.Advance();
+
+			while (true)
+			{
+				if (c == '"')
+				{
+					m_builder.Append(c);
+					m_window.Advance();
+					stringToken.Text = m_builder.ToString();
+					return stringToken;
+				}
+
+				if (c == '\n')
+				{
+					// strings can't span new line characters
+					throw new ParseException();
+				}
+
+				m_builder.Append(c);
+				m_window.Advance();
+			}
+		}
+
         private Token ScanNumericLiteral()
         {
-            List<char> numChars = new List<char>();
+			m_builder.Clear();
+
             char c;
             while ((c = m_window.PeekChar()) >= '0' && c <= '9')
             {
-                numChars.Add(c);
+                m_builder.Append(c);
                 m_window.Advance();
             }
 
-			
 			c = m_window.PeekChar();
 		
 			if (c == '.')
 			{
-				
-				numChars.Add(c);
+				m_builder.Append(c);
 				m_window.Advance();
 
-				while ((c = m_window.PeekChar()) >= '0' && c <= '9')
+				c = m_window.PeekChar();
+				if (c >= '0' && c <= '9')
 				{
-					numChars.Add(c);
-					m_window.Advance();
+					while ((c = m_window.PeekChar()) >= '0' && c <= '9')
+					{
+						m_builder.Append(c);
+						m_window.Advance();
+					}
+				}
+				else
+				{
+					// we got a decimal, but we didn't get anything after
+					// TODO: don't throw exception - deal with the error and move on later
+					// unfortunatly, right now, I don't have a decent way of dealing with it
+					throw new ParseException();
 				}
 			}
 			
-			bool hasExp = false;
-
 			if (c == 'e' || c == 'E')
 			{
-				hasExp = true;
-
-				numChars.Add(c);
+				m_builder.Append(c);
 				m_window.Advance();
 				c = m_window.PeekChar();
 
 				if ( c == '+' ||  c == '-')
 				{
-					numChars.Add(c);
+					m_builder.Append(c);
 					m_window.Advance();
 				}
 			}
 		
-			throw new NotImplementedException();
+			return new Token() 
+			{
+				SyntaxType = TokenType.Number,
+				Text = m_builder.ToString() 
+			};
 
         }
 
     }
 }
+
+
+//c = m_window.PeekChar();
+
+//				if (c == '"')
+//				{
+//					m_builder.Append(c);
+//					m_window.Advance();
+
+//					stringToken.Text = m_builder.ToString();
+//					stringToken.SyntaxType = TokenType.String;
+
+//					return stringToken;
+//				}
+
+//				if (c == '\\')
+//				{
+//					m_window.Advance();
+//					var c2 = m_window.PeekChar();
+
+//					switch (c2)
+//					{
+//						case '"':
+//							stringToken.SyntaxType = TokenType.DoubleQuote;
+//							break;
+//						case '\\':
+//							stringToken.SyntaxType = TokenType.BackSlash;
+//							break;
+//						case '/':
+//							stringToken.SyntaxType = TokenType.ForewardSlash;
+//							break;
+//						case 'b':
+//							stringToken.SyntaxType = TokenType.Backspace;
+//							break;
+//						case 'f':
+//							stringToken.SyntaxType = TokenType.FormFeed;
+//							break;
+//						case 'n':
+//							stringToken.SyntaxType = TokenType.NewLine;
+//							break;
+//						case 'r':
+//							stringToken.SyntaxType = TokenType.CarriageReturn;
+//							break;
+//						case 't':
+//							stringToken.SyntaxType = TokenType.HorizontalTab;
+//							break;
+//						case 'u':
+//							stringToken.SyntaxType = TokenType.Hex;
+//							m_window.Advance();
+
+//							for (int i = 0; i < 4; i++)
+//							{
+//								c = m_window.PeekChar();
+
+//								switch (c)
+//								{
+//									case 'a':
+//									case 'A':
+//									case 'b':
+//									case 'B':
+//									case 'c':
+//									case 'C':
+//									case 'd':
+//									case 'D':
+//									case 'e':
+//									case 'E':
+//									case 'f':
+//									case 'F':
+//										m_builder.Append(c);
+//										m_window.Advance();
+//										break;
+//									default:
+//										throw new ParseException();
+//								}
+
+//							}
+//							stringToken.Text = m_builder.
+//							break;
+//					}
+//				}
