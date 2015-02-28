@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JsonParse
 {
-    public class Class1
+    public class JsonParser
     {
     }
 }
