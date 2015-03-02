@@ -15,44 +15,38 @@ namespace JsonParse
         
 		private char m_currentChar;
 
-        private const char InvalidCharacter = char.MaxValue;
+        public const char InvalidCharacter = char.MaxValue;
 
         public TextWindow(string JsonString)
         {
             m_position = 0;
             m_jsonString = JsonString;
             m_jsonChars = m_jsonString.ToCharArray();
+            m_currentChar = m_jsonChars[0];
         }
 
         public char PeekChar()
         {
-            if (m_position > m_jsonChars.Length)
+            if (IsAtEnd())
             {
                 return InvalidCharacter;
             }
-
-			m_currentChar = m_jsonChars[m_position];
-
-			// skip the whitespace
-			while (char.IsWhiteSpace(m_currentChar))
-			{
-				Advance();
-				m_currentChar = m_jsonChars[m_position];
-			}
-
-			// skip new lines
-			while (m_currentChar == '\r' || m_currentChar == '\n')
-			{
-				Advance();
-				m_currentChar = m_jsonChars[m_position];
-			}
+			
+            //m_currentChar = m_jsonChars[m_position];
 
             return m_currentChar;
         }
 
+        public bool IsAtEnd()
+        {
+            return m_position == m_jsonChars.Length - 1;
+        }
+
+      
+
 		public char PeekChar(int Count)
 		{
-			if (m_position + Count > m_jsonChars.Length)
+			if (IsAtEnd())
 			{
 				return InvalidCharacter;
 			}
@@ -75,6 +69,13 @@ namespace JsonParse
         public void Advance()
         {
             m_position++;
+            m_currentChar = m_jsonChars[m_position];
+            
+            while ((/*m_currentChar == '\n' || m_currentChar == '\r' ||*/ char.IsWhiteSpace(m_currentChar)) && !IsAtEnd())
+            {
+                m_position++;
+                m_currentChar = m_jsonChars[m_position];
+            }
         }
 
         public void Advance(int Count)

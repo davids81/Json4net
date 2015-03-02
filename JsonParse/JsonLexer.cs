@@ -32,7 +32,8 @@ namespace JsonParse
 		Hex,
 		String,
 		PairDelim,
-		Comma
+		Comma,
+        EOF
     }
 
     public class Token
@@ -107,6 +108,8 @@ namespace JsonParse
 				case ',':
 					m_window.Advance();
 					return new Token { SyntaxType = TokenType.Comma, Text = "," };
+                case TextWindow.InvalidCharacter:
+                    return new Token { SyntaxType = TokenType.EOF, Text = null };
 
             }
 
