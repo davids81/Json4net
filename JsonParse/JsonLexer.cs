@@ -75,18 +75,19 @@ namespace JsonParse
             {
                 case '{':
                     m_window.Advance();
-                    return new Token { SyntaxType = TokenType.BeginObject };
+                    return new Token { SyntaxType = TokenType.BeginObject, Text = "{" };
                 case '}':
                     m_window.Advance();
-                    return new Token {  SyntaxType = TokenType.EndObject };
+                    return new Token {  SyntaxType = TokenType.EndObject, Text = "}" };
                 case '[':
                     m_window.Advance();
-                    return new Token { SyntaxType = TokenType.BeginArray };
+                    return new Token { SyntaxType = TokenType.BeginArray, Text = "[" };
                 case ']':
                     m_window.Advance();
-                    return new Token { SyntaxType = TokenType.EndArray };
+                    return new Token { SyntaxType = TokenType.EndArray, Text = "]" };
 				case '-':
-					return new Token { SyntaxType = TokenType.Minus };
+					m_window.Advance();
+					return new Token { SyntaxType = TokenType.Minus, Text = "-" };
                 case '0':
                 case '1':
                 case '2':
@@ -100,10 +101,16 @@ namespace JsonParse
                     return ScanNumericLiteral();
 				case '"':
 					return ScanStringLiteral();
+				case ':':
+					m_window.Advance();
+					return new Token { SyntaxType = TokenType.PairDelim, Text = ":" };
+				case ',':
+					m_window.Advance();
+					return new Token { SyntaxType = TokenType.Comma, Text = "," };
 
             }
 
-			throw new NotImplementedException();
+			return null;
         }
 
 		private Token ScanStringLiteral()
@@ -120,12 +127,14 @@ namespace JsonParse
 			}
 
 			m_builder.Append(c);
-			m_window.Advance();
-
+			
 			while (true)
 			{
+				m_window.Advance();
+				c = m_window.PeekChar();
+
 				if (c == '"')
-				{
+				{	
 					m_builder.Append(c);
 					m_window.Advance();
 					stringToken.Text = m_builder.ToString();
@@ -139,7 +148,6 @@ namespace JsonParse
 				}
 
 				m_builder.Append(c);
-				m_window.Advance();
 			}
 		}
 
