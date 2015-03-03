@@ -32,14 +32,14 @@ namespace JsonParse
                 return InvalidCharacter;
             }
 			
-            //m_currentChar = m_jsonChars[m_position];
+            //m_currentChar;
 
-            return m_currentChar;
+            return m_currentChar = m_jsonChars[m_position];
         }
 
         public bool IsAtEnd()
         {
-            return m_position == m_jsonChars.Length;
+            return m_position >= m_jsonChars.Length;
         }
 
       
@@ -69,13 +69,6 @@ namespace JsonParse
         public void Advance()
         {
             m_position++;
-            m_currentChar = m_jsonChars[m_position];
-            
-            while (char.IsWhiteSpace(m_currentChar) && !IsAtEnd())
-            {
-                m_position++;
-                m_currentChar = m_jsonChars[m_position];
-            }
         }
 
         public void Advance(int Count)

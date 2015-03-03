@@ -68,7 +68,7 @@ namespace JsonParse
             m_window = Text;
 			m_builder = new StringBuilder();
 			// advance to the first character
-			m_window.Advance();
+			//m_window.Advance();
         }
 
         public Token Lex()
@@ -77,19 +77,19 @@ namespace JsonParse
             switch (currentChar)
             {
                 case '{':
-                    m_window.Advance();
+                    SkipWhiteToNextChar();
                     return new Token { SyntaxType = TokenType.BeginObject, Text = "{" };
                 case '}':
-                    m_window.Advance();
+                    SkipWhiteToNextChar();
                     return new Token {  SyntaxType = TokenType.EndObject, Text = "}" };
                 case '[':
-                    m_window.Advance();
+                    SkipWhiteToNextChar();
                     return new Token { SyntaxType = TokenType.BeginArray, Text = "[" };
                 case ']':
-                    m_window.Advance();
+                    SkipWhiteToNextChar();
                     return new Token { SyntaxType = TokenType.EndArray, Text = "]" };
 				case '-':
-					m_window.Advance();
+                    SkipWhiteToNextChar();
 					return new Token { SyntaxType = TokenType.Minus, Text = "-" };
                 case '0':
                 case '1':
@@ -101,14 +101,18 @@ namespace JsonParse
                 case '7':
                 case '8':
                 case '9':
-                    return ScanNumericLiteral();
+                    Token numericLiteral = ScanNumericLiteral();
+                    SkipWhiteToNextChar();
+                    return numericLiteral;
 				case '"':
-					return ScanStringLiteral();
+                    Token stringLiteral = ScanStringLiteral();
+                    SkipWhiteToNextChar();
+                    return stringLiteral;
 				case ':':
-					m_window.Advance();
+                    SkipWhiteToNextChar();
 					return new Token { SyntaxType = TokenType.PairDelim, Text = ":" };
 				case ',':
-					m_window.Advance();
+                    SkipWhiteToNextChar();
 					return new Token { SyntaxType = TokenType.Comma, Text = "," };
                 case TextWindow.InvalidCharacter:
                     return new Token { SyntaxType = TokenType.EOF, Text = null };
@@ -159,10 +163,44 @@ namespace JsonParse
 					}
 				
 					throw new ParseException("Invlaid Keyword");
+                case 'n':
+                case 'N':
+                    StringBuilder nullChars = new StringBuilder();
 
+                    do
+                    {
+                        nullChars.Append(currentChar);
+                        m_window.Advance();
+                        currentChar = m_window.PeekChar();
+                    } while (char.IsLetter(currentChar));
+
+                    if (nullChars.Length == 4)
+                    {
+                        if (nullChars[0] == 'n' || nullChars[0] == 'N' &&
+                            nullChars[0] == 'u' || nullChars[0] == 'U' &&
+                            nullChars[0] == 'l' || nullChars[0] == 'L' &&
+                            nullChars[0] == 'l' || nullChars[0] == 'L')
+                        {
+                            return new Token { SyntaxType = TokenType.Null, Text = "null" };
+                        }
+                    }
+
+                    throw new ParseException("Invalid Keyword");
             }
 
 			return null;
+        }
+
+        private void SkipWhiteToNextChar()
+        {
+            m_window.Advance();
+
+            char c = m_window.PeekChar();
+            while (char.IsWhiteSpace(c))
+            {
+                m_window.Advance();
+                c = m_window.PeekChar();
+            }
         }
 
 		private Token ScanStringLiteral()
@@ -193,7 +231,7 @@ namespace JsonParse
 					return stringToken;
 				}
 
-				if (c == '\n')
+				if (c == '\n' || c == '\r')
 				{
 					// strings can't span new line characters
 					throw new ParseException();
@@ -263,82 +301,3 @@ namespace JsonParse
     }
 }
 
-
-//c = m_window.PeekChar();
-
-//				if (c == '"')
-//				{
-//					m_builder.Append(c);
-//					m_window.Advance();
-
-//					stringToken.Text = m_builder.ToString();
-//					stringToken.SyntaxType = TokenType.String;
-
-//					return stringToken;
-//				}
-
-//				if (c == '\\')
-//				{
-//					m_window.Advance();
-//					var c2 = m_window.PeekChar();
-
-//					switch (c2)
-//					{
-//						case '"':
-//							stringToken.SyntaxType = TokenType.DoubleQuote;
-//							break;
-//						case '\\':
-//							stringToken.SyntaxType = TokenType.BackSlash;
-//							break;
-//						case '/':
-//							stringToken.SyntaxType = TokenType.ForewardSlash;
-//							break;
-//						case 'b':
-//							stringToken.SyntaxType = TokenType.Backspace;
-//							break;
-//						case 'f':
-//							stringToken.SyntaxType = TokenType.FormFeed;
-//							break;
-//						case 'n':
-//							stringToken.SyntaxType = TokenType.NewLine;
-//							break;
-//						case 'r':
-//							stringToken.SyntaxType = TokenType.CarriageReturn;
-//							break;
-//						case 't':
-//							stringToken.SyntaxType = TokenType.HorizontalTab;
-//							break;
-//						case 'u':
-//							stringToken.SyntaxType = TokenType.Hex;
-//							m_window.Advance();
-
-//							for (int i = 0; i < 4; i++)
-//							{
-//								c = m_window.PeekChar();
-
-//								switch (c)
-//								{
-//									case 'a':
-//									case 'A':
-//									case 'b':
-//									case 'B':
-//									case 'c':
-//									case 'C':
-//									case 'd':
-//									case 'D':
-//									case 'e':
-//									case 'E':
-//									case 'f':
-//									case 'F':
-//										m_builder.Append(c);
-//										m_window.Advance();
-//										break;
-//									default:
-//										throw new ParseException();
-//								}
-
-//							}
-//							stringToken.Text = m_builder.
-//							break;
-//					}
-//				}
