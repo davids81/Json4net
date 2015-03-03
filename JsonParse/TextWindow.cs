@@ -39,7 +39,7 @@ namespace JsonParse
 
         public bool IsAtEnd()
         {
-            return m_position == m_jsonChars.Length - 1;
+            return m_position == m_jsonChars.Length;
         }
 
       
@@ -71,7 +71,7 @@ namespace JsonParse
             m_position++;
             m_currentChar = m_jsonChars[m_position];
             
-            while ((/*m_currentChar == '\n' || m_currentChar == '\r' ||*/ char.IsWhiteSpace(m_currentChar)) && !IsAtEnd())
+            while (char.IsWhiteSpace(m_currentChar) && !IsAtEnd())
             {
                 m_position++;
                 m_currentChar = m_jsonChars[m_position];

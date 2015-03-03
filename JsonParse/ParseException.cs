@@ -6,7 +6,16 @@ using System.Threading.Tasks;
 
 namespace JsonParse
 {
-	class ParseException : Exception
+	public class ParseException : Exception
 	{
+		public ParseException() : base()
+		{
+
+		}
+
+		public ParseException(string Message) : base(Message)
+		{
+
+		}
 	}
 }

@@ -67,6 +67,8 @@ namespace JsonParse
         {
             m_window = Text;
 			m_builder = new StringBuilder();
+			// advance to the first character
+			m_window.Advance();
         }
 
         public Token Lex()
@@ -110,8 +112,53 @@ namespace JsonParse
 					return new Token { SyntaxType = TokenType.Comma, Text = "," };
                 case TextWindow.InvalidCharacter:
                     return new Token { SyntaxType = TokenType.EOF, Text = null };
-                
-                    
+                case 't':
+				case 'T':
+					StringBuilder trueString = new StringBuilder();
+			
+					do
+					{
+						trueString.Append(currentChar);
+						m_window.Advance();
+						currentChar = m_window.PeekChar();
+					} while (char.IsLetter(currentChar));
+
+					if (trueString.Length == 4)
+					{
+						if (trueString[0] == 't' || trueString[1] == 'T' &&
+							trueString[1] == 'r' || trueString[1] == 'R' &&
+							trueString[2] == 'u' || trueString[2] == 'U' &&
+							trueString[3] == 'e' || trueString[3] == 'E')
+						{
+							return new Token { SyntaxType = TokenType.True, Text = trueString.ToString() };
+						}
+					}
+				
+					throw new ParseException("Invlaid Keyword");
+				case 'f':
+				case 'F':
+					StringBuilder falseString = new StringBuilder();
+				
+					do
+					{
+						falseString.Append(currentChar);
+						m_window.Advance();
+						currentChar = m_window.PeekChar();
+					} while (char.IsLetter(currentChar));
+
+					if (falseString.Length == 5)
+					{
+						if (falseString[0] == 'f' || falseString[1] == 'F' &&
+							falseString[1] == 'a' || falseString[1] == 'A' &&
+							falseString[2] == 'l' || falseString[2] == 'L' &&
+							falseString[3] == 's' || falseString[3] == 'S' &&
+							falseString[4] == 'e' || falseString[4] == 'E')
+						{
+							return new Token { SyntaxType = TokenType.False, Text = falseString.ToString() };
+						}
+					}
+				
+					throw new ParseException("Invlaid Keyword");
 
             }
 
