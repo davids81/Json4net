@@ -110,6 +110,8 @@ namespace JsonParse
 					return new Token { SyntaxType = TokenType.Comma, Text = "," };
                 case TextWindow.InvalidCharacter:
                     return new Token { SyntaxType = TokenType.EOF, Text = null };
+                
+                    
 
             }
 
