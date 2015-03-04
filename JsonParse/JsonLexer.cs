@@ -77,20 +77,30 @@ namespace JsonParse
             switch (currentChar)
             {
                 case '{':
+
                     SkipWhiteToNextChar();
                     return new Token { SyntaxType = TokenType.BeginObject, Text = "{" };
+
                 case '}':
+
                     SkipWhiteToNextChar();
                     return new Token {  SyntaxType = TokenType.EndObject, Text = "}" };
+
                 case '[':
+
                     SkipWhiteToNextChar();
                     return new Token { SyntaxType = TokenType.BeginArray, Text = "[" };
+
                 case ']':
+
                     SkipWhiteToNextChar();
                     return new Token { SyntaxType = TokenType.EndArray, Text = "]" };
+
 				case '-':
+
                     SkipWhiteToNextChar();
 					return new Token { SyntaxType = TokenType.Minus, Text = "-" };
+
                 case '0':
                 case '1':
                 case '2':
@@ -101,23 +111,34 @@ namespace JsonParse
                 case '7':
                 case '8':
                 case '9':
+
                     Token numericLiteral = ScanNumericLiteral();
                     SkipWhiteToNextChar();
                     return numericLiteral;
+
 				case '"':
+
                     Token stringLiteral = ScanStringLiteral();
                     SkipWhiteToNextChar();
                     return stringLiteral;
+
 				case ':':
+
                     SkipWhiteToNextChar();
 					return new Token { SyntaxType = TokenType.PairDelim, Text = ":" };
+
 				case ',':
+
                     SkipWhiteToNextChar();
 					return new Token { SyntaxType = TokenType.Comma, Text = "," };
+
                 case TextWindow.InvalidCharacter:
+
                     return new Token { SyntaxType = TokenType.EOF, Text = null };
+
                 case 't':
 				case 'T':
+
 					StringBuilder trueString = new StringBuilder();
 			
 					do
@@ -125,7 +146,8 @@ namespace JsonParse
 						trueString.Append(currentChar);
 						m_window.Advance();
 						currentChar = m_window.PeekChar();
-					} while (char.IsLetter(currentChar));
+					} 
+                    while (char.IsLetter(currentChar));
 
 					if (trueString.Length == 4)
 					{
@@ -139,8 +161,10 @@ namespace JsonParse
 					}
 				
 					throw new ParseException("Invlaid Keyword");
+
 				case 'f':
 				case 'F':
+
 					StringBuilder falseString = new StringBuilder();
 				
 					do
@@ -148,7 +172,8 @@ namespace JsonParse
 						falseString.Append(currentChar);
 						m_window.Advance();
 						currentChar = m_window.PeekChar();
-					} while (char.IsLetter(currentChar));
+					} 
+                    while (char.IsLetter(currentChar));
 
 					if (falseString.Length == 5)
 					{
@@ -163,8 +188,10 @@ namespace JsonParse
 					}
 				
 					throw new ParseException("Invlaid Keyword");
+
                 case 'n':
                 case 'N':
+
                     StringBuilder nullChars = new StringBuilder();
 
                     do
@@ -172,7 +199,8 @@ namespace JsonParse
                         nullChars.Append(currentChar);
                         m_window.Advance();
                         currentChar = m_window.PeekChar();
-                    } while (char.IsLetter(currentChar));
+                    } 
+                    while (char.IsLetter(currentChar));
 
                     if (nullChars.Length == 4)
                     {
@@ -196,6 +224,7 @@ namespace JsonParse
             m_window.Advance();
 
             char c = m_window.PeekChar();
+
             while (char.IsWhiteSpace(c))
             {
                 m_window.Advance();
@@ -280,6 +309,7 @@ namespace JsonParse
 			if (c == 'e' || c == 'E')
 			{
 				m_builder.Append(c);
+
 				m_window.Advance();
 				c = m_window.PeekChar();
 
@@ -295,9 +325,7 @@ namespace JsonParse
 				SyntaxType = TokenType.Number,
 				Text = m_builder.ToString() 
 			};
-
         }
-
     }
 }
 
